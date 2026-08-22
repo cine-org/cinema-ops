@@ -1,0 +1,52 @@
+# Shared Argo CD Helm values for every environment (staging, production, ...).
+# Kept HA off for now since each VPS runs a single Argo CD instance; every
+# component is scoped to replicas: 1 with modest resource requests so this
+# also fits a small VPS. Bump replicas/resources per-environment later
+# (e.g. bootstrap/argocd/production/values.yaml) without touching this file.
+
+redis-ha:
+  enabled: false
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+repoServer:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+applicationSet:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+server:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  service:
+    type: ClusterIP

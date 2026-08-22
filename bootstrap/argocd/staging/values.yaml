@@ -1,0 +1,4 @@
+# Staging-only overrides on top of ../common-values.yaml.
+# Empty for now: staging is accessed via SSH tunnel + port-forward (doc 1,
+# step 5), so no ingress/domain/TLS override is needed yet. Add here once
+# staging gets its own Traefik ingress + DNS.
