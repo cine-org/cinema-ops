@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-resources
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/cine-org/cinema-ops.git
+    targetRevision: main
+    path: k8s/environments/staging/resources
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
