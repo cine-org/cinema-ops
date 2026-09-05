@@ -1,1 +1,48 @@
+# --- Scratch / local work ---
 .tmp/
+tmp/
+scratch/
+*.bak
+*.orig
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+
+# --- Editor junk ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --- Secrets & credentials (never commit, even "just to test") ---
+*.pem
+*.key
+*.p12
+*.crt
+.env
+.env.*
+*credentials*.json
+*-key.json
+*serviceaccount*.json
+*service-account*.json
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+.kube/
+
+# --- Local overrides (per-machine values, not meant for Git) ---
+*.local.yaml
+*.local.yml
+values.local.yaml
+
+# --- Terraform (if/when used) ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+
+# --- Helm (downloaded chart deps, not source) ---
+charts/*.tgz
