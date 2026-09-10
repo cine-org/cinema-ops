@@ -1,0 +1,47 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: platform
+spec:
+  instances: 2
+
+  bootstrap:
+    initdb:
+      database: cinema
+      owner: cinema
+      secret:
+        name: platform-postgres
+
+  managed:
+    roles:
+      - name: cinema_rw
+        ensure: present
+        login: true
+        inherit: true
+        connectionLimit: -1
+        passwordSecret:
+          name: platform-postgres-rw
+        inRoles:
+          - pg_read_all_data
+          - pg_write_all_data
+
+      - name: cinema_ro
+        ensure: present
+        login: true
+        inherit: true
+        connectionLimit: -1
+        passwordSecret:
+          name: platform-postgres-ro
+        inRoles:
+          - pg_read_all_data
+
+  storage:
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
