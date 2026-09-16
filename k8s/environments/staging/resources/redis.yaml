@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: platform
+data:
+  redis-additional.conf: |
+    maxmemory 128mb
+    maxmemory-policy allkeys-lru
+    appendonly no
+    save ""
+---
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisReplication
+metadata:
+  name: redis
+  namespace: platform
+spec:
+  clusterSize: 1
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v8.10.1
+    imagePullPolicy: IfNotPresent
+    redisSecret:
+      name: platform-redis
+      key: password
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+  redisConfig:
+    additionalRedisConfig: redis-config
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app: redis
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
