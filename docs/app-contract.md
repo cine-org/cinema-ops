@@ -21,7 +21,7 @@ Tag `latest` không dùng vì Argo CD so Git: tag không đổi thì Git không 
 | App | Loại | Port | Health | Số bản chạy |
 | --- | --- | --- | --- | --- |
 | `api` | Deployment | `3000` (`PORT`) | `GET /health` | nhiều |
-| `web-user` | Deployment | `80` (`PORT`) | **cần thêm** | nhiều |
+| `web-user` | Deployment | `80` (`PORT`) | `GET /healthz` | nhiều |
 | `web-admin` | Deployment | `80` | **cần thêm** | nhiều |
 | `worker` | Deployment | không mở | **cần thêm** | nhiều |
 | `scheduler` | Deployment | không mở | **cần thêm** | **đúng 1** (hoặc chuyển sang CronJob) |
