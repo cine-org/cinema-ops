@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-admin
+  namespace: cinema
+  labels:
+    app.kubernetes.io/name: web-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: web-admin
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: web-admin
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: web-admin
+          image: ghcr.io/cine-org/setup-monorepo/web-admin:v0.1.0
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: API_ORIGIN
+              value: https://api.cine.io.vn
+            - name: API_PREFIX
+              value: /api/v1
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
