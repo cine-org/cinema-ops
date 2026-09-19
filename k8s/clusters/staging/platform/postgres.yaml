@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://cloudnative-pg.github.io/charts
+      chart: cloudnative-pg
+      targetRevision: 0.29.0
+      helm:
+        releaseName: cnpg-operator
+    - repoURL: https://github.com/cine-org/cinema-ops.git
+      targetRevision: main
+      path: k8s/platform/postgres/envs/staging
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-system
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

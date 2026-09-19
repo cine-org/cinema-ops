@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: root-staging
+  name: traefik
   namespace: argocd
 spec:
   project: default
@@ -9,13 +9,11 @@ spec:
   source:
     repoURL: https://github.com/cine-org/cinema-ops.git
     targetRevision: main
-    path: k8s/clusters/staging
-    directory:
-      recurse: true
+    path: k8s/platform/traefik/envs/staging
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: kube-system
 
   syncPolicy:
     automated:
@@ -23,4 +21,10 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-user
+  namespace: cinema
+  labels:
+    app.kubernetes.io/name: web-user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: web-user
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: web-user
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: web-user
+          image: ghcr.io/cine-org/setup-monorepo/web-user
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi

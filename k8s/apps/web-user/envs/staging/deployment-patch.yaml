@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-user
+  namespace: cinema
+spec:
+  template:
+    spec:
+      containers:
+        - name: web-user
+          env:
+            - name: API_ORIGIN
+              value: https://api.cine.io.vn
+            - name: API_PREFIX
+              value: /api/v1
