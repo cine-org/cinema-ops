@@ -52,14 +52,39 @@ App không mở port vẫn cần cách báo sống (file, port nội bộ, hoặ
 | `DATABASE_URL` | Job migration | `postgresql://cinema:<pw>@postgres-rw.platform.svc:5432/cinema` | — |
 | `REDIS_URL` | api (cache, rate limit) | `redis://:<pw>@redis-master.platform.svc:6379/0` | **chưa có trong schema env** |
 | `PORT` | api, web-* | `3000` / `80` | có |
-| `API_ORIGIN` | api, web-user | `https://api-staging.cine.io.vn` | có |
+| `API_ORIGIN` | web-user, web-admin | `https://api.cine.io.vn` (xem "Đường gọi api") | có |
 | `API_PREFIX` | api, web-user | `/api` (api), `/api/v1` (web-user) | có |
-| `CORS_ORIGINS` | api | `https://staging.cine.io.vn,https://admin-staging.cine.io.vn` | có |
+| `CORS_ORIGINS` | api | `https://cine.io.vn,https://admin.cine.io.vn` | có |
 | `ENABLE_SWAGGER`, `LOG_LEVEL`, `NODE_ENV` | api | theo môi trường | có |
 
 Password hex (không ký tự đặc biệt) nên ghép thẳng vào URL không cần encode.
 
 Script `start` hiện gọi `dotenv -e ../../.env` — trong image phải chạy thẳng `node dist/main` (Dockerfile đang làm đúng) để env của pod không bị file đè.
+
+## Đường gọi api
+
+Code trong trình duyệt gọi api, nên api phải tới được từ Internet. Mỗi app một subdomain, giống nginx cũ (`infrastructure/nginx` bên `cinema`):
+
+```text
+https://cine.io.vn/...              → Service web-user:80
+https://admin.cine.io.vn/...        → Service web-admin:80
+https://api.cine.io.vn/api/v1/...   → Service api:3000
+```
+
+**Thu hẹp**: Ingress của api chỉ mở path `/api/v1`. Những gì nằm ngoài path đó không ra Internet:
+
+| Path | Ra Internet | Ghi chú |
+| --- | --- | --- |
+| `/api/v1/...` | có | trình duyệt gọi |
+| `/api/v1/webhooks/<provider>` | có | nhà cung cấp (thanh toán...) gọi vào; api **phải** kiểm chữ ký, không dựa vào việc path bị ẩn |
+| `/health` | không | chỉ kubelet gọi (probe) |
+| `/api/docs` (Swagger) | không | xem qua `kubectl port-forward` |
+
+- Quy ước bên `cinema`: endpoint nội bộ **không** đặt dưới `/api/v1`; webhook đặt dưới `/api/v1/webhooks/`.
+- Sau này có thể tách Ingress riêng cho `/api/v1/webhooks` để gắn middleware khác (không rate limit, `IPAllowList` theo IP nhà cung cấp).
+- Gọi giữa các pod trong cluster dùng tên nội bộ `http://api.cinema.svc:3000`, không đi vòng qua Ingress.
+- Đổi sang chung domain về sau chỉ cần đổi env + Ingress, không sửa code (web tự dùng `window.location.origin` khi `API_ORIGIN` trống).
+- Ẩn api hẳn khỏi Internet: web gọi api từ phía server Next.js (`API_INTERNAL_URL`), cần sửa code web; webhook vẫn phải có đường vào.
 
 ## Hành vi app cần có
 

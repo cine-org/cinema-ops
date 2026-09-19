@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-user
+  namespace: cinema
+spec:
+  selector:
+    app.kubernetes.io/name: web-user
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
