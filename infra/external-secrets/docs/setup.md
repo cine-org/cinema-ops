@@ -1,18 +1,12 @@
 # External Secrets + GSM
 
-> Chọn GSM vì tier Always Free lặp hàng tháng. Prefix tên: `infra-` cho hạ tầng, `cinema-` cho app.
+> Chọn GSM vì tier Always Free lặp hàng tháng. Prefix: `infra-` cho hạ tầng, `cinema-` cho app.
 
-## 1. GCP: service account
+## 1. GCP
 
-```text
-IAM & Admin → Service Accounts → Create
-  Role: Secret Manager Secret Accessor
-→ Keys → Add key → JSON
-```
+Service account role `Secret Manager Secret Accessor` → Keys → Add key → JSON.
 
-## 2. GCP: tạo secret
-
-`Security → Secret Manager → Create secret`. Password: `openssl rand -hex 24` (hex để khỏi URL-encode).
+Secret Manager → Create secret (password: `openssl rand -hex 24`, hex để khỏi URL-encode):
 
 | Tên | Value |
 | --- | --- |
@@ -22,17 +16,14 @@ IAM & Admin → Service Accounts → Create
 | `infra-redis` | `{"password":"<hex>"}` |
 | `cinema-ghcr-pull` | `{"username":"<github-user>","token":"<PAT>"}` |
 
-## 3. VPS: key vào cluster
+## 2. Đưa key vào cluster
 
-Secret duy nhất tạo tay — chìa khóa mở mọi secret còn lại.
+Secret duy nhất tạo tay — chìa khóa mở mọi secret còn lại. Xóa file JSON sau khi chạy.
 
 ```bash
 kubectl create secret generic gcpsm-credentials \
-  --from-file=secret-access-credentials=<file.json> \
-  -n infra
+  --from-file=secret-access-credentials=<file.json> -n infra
 ```
-
-Xóa file JSON khỏi máy sau đó.
 
 ## Mẫu ExternalSecret
 
@@ -41,27 +32,26 @@ spec:
   refreshInterval: 1h
   secretStoreRef:
     name: gcp-secret-manager
-    kind: ClusterSecretStore     # bỏ trống → ESO hiểu là SecretStore, không thấy
+    kind: ClusterSecretStore   # bỏ trống → ESO hiểu là SecretStore, không thấy
   target:
-    name: infra-redis            # tên Secret K8s sinh ra
+    name: infra-redis          # tên Secret K8s sinh ra
   data:
-    - secretKey: password        # key trong Secret K8s
+    - secretKey: password      # key trong Secret K8s
       remoteRef:
-        key: infra-redis         # tên secret bên GSM
-        property: password       # field trong JSON
+        key: infra-redis       # tên secret bên GSM
+        property: password     # field trong JSON
 ```
 
-- Secret sinh ra thuộc sở hữu `ExternalSecret` — xóa công thức là Secret mất theo.
-- `target.template` để nhào ra định dạng khác, ví dụ `dockerconfigjson` (xem `infra/ghcr-pull`).
+- Secret sinh ra thuộc sở hữu `ExternalSecret`: xóa công thức là mất Secret.
+- `target.template` để nhào định dạng khác, ví dụ `dockerconfigjson` (xem `infra/ghcr-pull`).
 - Không dùng `dataFrom.extract`: liệt kê ra thì đọc file biết ngay Secret có gì.
-- CRD rất lớn → Application bắt buộc `ServerSideApply=true`.
+- CRD lớn → Application bắt buộc `ServerSideApply=true`.
 
 ## Verify
 
 ```bash
-kubectl get clustersecretstore        # Valid
-kubectl get externalsecret -A         # SecretSynced
-kubectl describe externalsecret <tên> -n <ns>
+kubectl get clustersecretstore      # Valid
+kubectl get externalsecret -A       # SecretSynced
 ```
 
 `Invalid` thường do sai role service account, sai tên `gcpsm-credentials`, hoặc quên sửa `projectID`.

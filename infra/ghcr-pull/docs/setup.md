@@ -1,6 +1,6 @@
 # ghcr-pull
 
-> PAT classic, chỉ tick `read:packages`. Cất ở GSM tên `cinema-ghcr-pull`: `{"username": "...", "token": "..."}`.
+> PAT classic chỉ tick `read:packages`, cất ở GSM tên `cinema-ghcr-pull`: `{"username": "...", "token": "..."}`.
 
 Không `kubectl create secret docker-registry` tay: secret tạo tay là thứ không ai biết từ đâu ra khi dựng lại cluster.
 
@@ -23,7 +23,7 @@ kubectl get externalsecret ghcr-pull -n cinema                      # SecretSync
 kubectl get secret ghcr-pull -n cinema -o jsonpath='{.type}'; echo  # dockerconfigjson
 ```
 
-`ImagePullBackOff` + `denied` = PAT sai hoặc thiếu quyền. `manifest unknown` = credential đúng, tag không tồn tại:
+`ImagePullBackOff` + `denied` = PAT sai hoặc thiếu quyền; `manifest unknown` = tag không tồn tại. Kiểm tra tag bằng chính credential trong Secret:
 
 ```bash
 U=$(kubectl get secret ghcr-pull -n cinema -o jsonpath='{.data.\.dockerconfigjson}' \
@@ -32,6 +32,4 @@ curl -s -H "Authorization: Bearer $(echo -n "$U" | base64 -w0)" \
   https://ghcr.io/v2/cine-org/setup-monorepo/web-user/tags/list
 ```
 
-## Để dành sau
-
-GitHub App (ESO generator `GithubAccessToken`) để token tự xoay vòng. Chưa rõ GHCR có nhận token của App cho việc pull không.
+Sau này chuyển sang GitHub App để token tự xoay vòng; chưa rõ GHCR có nhận token của App cho việc pull không.
