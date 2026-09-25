@@ -19,7 +19,7 @@ spec:
         - name: ghcr-pull
       containers:
         - name: web-user
-          image: ghcr.io/cine-org/setup-monorepo/web-user
+          image: ghcr.io/cine-org/cinema/web-user
           ports:
             - name: http
               containerPort: 80

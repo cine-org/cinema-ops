@@ -29,7 +29,7 @@ kubectl get secret ghcr-pull -n cinema -o jsonpath='{.type}'; echo  # dockerconf
 U=$(kubectl get secret ghcr-pull -n cinema -o jsonpath='{.data.\.dockerconfigjson}' \
   | base64 -d | sed 's/.*"auth":"\([^"]*\)".*/\1/')
 curl -s -H "Authorization: Bearer $(echo -n "$U" | base64 -w0)" \
-  https://ghcr.io/v2/cine-org/setup-monorepo/web-user/tags/list
+  https://ghcr.io/v2/cine-org/cinema/web-user/tags/list
 ```
 
 Sau này chuyển sang GitHub App để token tự xoay vòng; chưa rõ GHCR có nhận token của App cho việc pull không.

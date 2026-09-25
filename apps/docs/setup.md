@@ -16,7 +16,7 @@ Gì đổi theo môi trường thì xuống `envs/`: tag, domain, env, số bả
 ```yaml
 # envs/staging/kustomization.yaml
 images:
-  - name: ghcr.io/cine-org/setup-monorepo/web-user
+  - name: ghcr.io/cine-org/cinema/web-user
     newTag: v0.2.0
 ```
 
