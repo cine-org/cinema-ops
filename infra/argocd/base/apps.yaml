@@ -1,0 +1,45 @@
+# One Application per apps/<app>/envs/ENV.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+    - git:
+        repoURL: https://github.com/cine-org/cinema-ops.git
+        revision: main
+        directories:
+          - path: apps/*/envs/ENV
+
+  template:
+    metadata:
+      name: "{{ index .path.segments 1 }}"
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/cine-org/cinema-ops.git
+        targetRevision: main
+        path: "{{ .path.path }}"
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: cinema
+
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m

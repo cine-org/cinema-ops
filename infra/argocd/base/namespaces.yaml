@@ -1,0 +1,16 @@
+# Deleting a namespace deletes everything in it, so never prune.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cinema
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Prune=false
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Prune=false

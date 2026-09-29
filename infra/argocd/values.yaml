@@ -1,0 +1,54 @@
+# Shared by every env; no HA, sized for a small VPS.
+
+redis-ha:
+  enabled: false
+
+dex:
+  enabled: false
+
+# Plain HTTP inside the cluster: the UI is reached through a port-forward, and TLS will end at Traefik.
+configs:
+  params:
+    server.insecure: true
+
+# Needs the GitHub App key from GSM; enabled together with External Secrets.
+notifications:
+  enabled: false
+
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+repoServer:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+applicationSet:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+server:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  service:
+    type: ClusterIP
