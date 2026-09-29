@@ -1,0 +1,71 @@
+# One Application per infra/<feat>/envs/ENV, configured by infra/<feat>/app.yaml.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: infra
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+    - matrix:
+        generators:
+          - git:
+              repoURL: https://github.com/cine-org/cinema-ops.git
+              revision: main
+              pathParamPrefix: dir
+              directories:
+                - path: infra/*/envs/ENV
+                # Managed by the root app (bootstrap/root).
+                - path: infra/argocd/envs/ENV
+                  exclude: true
+          - git:
+              repoURL: https://github.com/cine-org/cinema-ops.git
+              revision: main
+              files:
+                - path: "infra/{{ index .dir.path.segments 1 }}/app.yaml"
+
+  template:
+    metadata:
+      name: "{{ index .dir.path.segments 1 }}"
+    spec:
+      project: default
+      sources: []
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ .namespace }}"
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+
+  # Chart source only when app.yaml has `chart`.
+  templatePatch: |
+    spec:
+      sources:
+      {{- if hasKey . "chart" }}
+        - repoURL: {{ .chart.repo }}
+          chart: {{ .chart.name }}
+          targetRevision: {{ .chart.version | quote }}
+          helm:
+            releaseName: {{ .chart.release }}
+            ignoreMissingValueFiles: true
+            valueFiles:
+              - $values/infra/{{ index .dir.path.segments 1 }}/values.yaml
+              - $values/{{ .dir.path.path }}/values.yaml
+      {{- end }}
+        - repoURL: https://github.com/cine-org/cinema-ops.git
+          targetRevision: main
+          path: {{ .dir.path.path }}
+          ref: values

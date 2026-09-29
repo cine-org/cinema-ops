@@ -46,3 +46,10 @@ crash.log
 
 # --- Helm (downloaded chart deps, not source) ---
 charts/*.tgz
+
+# --- AI agents ---
+.claude/
+.codex/
+AGENTS.md
+CLAUDE.md
+openspec/
