@@ -1,0 +1,2 @@
+# Read by infra/argocd/base/infra.yaml.
+namespace: cinema
