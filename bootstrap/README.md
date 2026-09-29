@@ -8,20 +8,22 @@ Mọi việc làm tay khi dựng một env mới trên VPS trống. Xong mục 3
 
 ## Chuẩn bị
 
-VM trên GCP: tạo theo [docs/gcp/gce.md](../docs/gcp/gce.md).
+GCP, mỗi env một project:
+
+- VM: [docs/gcp/gce.md](../docs/gcp/gce.md).
+- GSM: [docs/gcp/gsm.md](../docs/gcp/gsm.md).
 
 Coi repo là private: Argo CD đọc repo bằng GitHub App `argocd-cinema-ops-reader` (App ID `4630807`, Installation ID `154539301`, quyền Contents R · Commit statuses RW).
 
-Mỗi env một private key: GitHub → cine-org → Settings → GitHub Apps → `argocd-cinema-ops-reader` → Private keys → Generate. Lưu ở `.tmp/<env>/gsm/infra-argocd-github-app.pem`.
+Mỗi env một private key: GitHub → cine-org → Settings → GitHub Apps → `argocd-cinema-ops-reader` → Private keys → Generate. Lưu thành file `infra-argocd-github-app.pem`.
 
-`.tmp/<env>/gsm/` (đã gitignore) giữ bản local của mọi secret sẽ đưa lên GSM, tên file = tên secret. Không để các file này trên VPS.
+File secret giữ ở máy local, không commit và không để trên VPS. File đưa lên GSM đặt tên theo tên secret. Các lệnh bên dưới chỉ ghi tên file.
 
 Mỗi phiên terminal ở máy local, đứng ở thư mục repo, khai env một lần; các lệnh bên dưới dùng lại:
 
 ```bash
 ENV=staging              # envs/<env>, bootstrap/root/<env>.yaml
 HOST=cinema-$ENV         # SSH alias
-SECRETS=.tmp/$ENV/gsm    # bản local của secret GSM
 ```
 
 Lệnh chạy ở đâu:
@@ -203,9 +205,16 @@ ssh "$HOST" 'helm install argocd argo/argo-cd --version 10.4.0 -n argocd --creat
 
 Chỉ cài tay lần đầu. Tên release (`argocd`) và version phải trùng `bootstrap/root/<env>.yaml`, để ở bước root app, Argo CD nhận quản lý đúng release này. Từ đó sửa `infra/argocd/values.yaml` rồi push, không `helm upgrade` nữa.
 
-## 3.3 Credential đọc repo
+## 3.3 Secret tạo tay
 
-_Máy local._ Secret tạo tay, key đi qua stdin:
+Mọi secret đi qua GSM + External Secrets, trừ những secret cần có **trước** khi GitOps chạy được. Chỉ những secret trong bảng này được tạo tay, và phải tạo trước root app:
+
+| Secret              | Ns       | Vì sao phải tạo tay                                           |
+| ------------------- | -------- | ------------------------------------------------------------- |
+| `cinema-ops-repo`   | `argocd` | Argo CD cần nó để đọc repo, trước khi cài được gì             |
+| `gcpsm-credentials` | `infra`  | External Secrets cần nó để đọc GSM, nên không lấy từ GSM được |
+
+_Máy local._ Key đi qua stdin:
 
 ```bash
 ssh "$HOST" 'kubectl create secret generic cinema-ops-repo -n argocd \
@@ -215,14 +224,16 @@ ssh "$HOST" 'kubectl create secret generic cinema-ops-repo -n argocd \
   --from-literal=githubAppInstallationID=154539301 \
   --from-file=githubAppPrivateKey=/dev/stdin \
   && kubectl label secret cinema-ops-repo -n argocd argocd.argoproj.io/secret-type=repository' \
-  < "$SECRETS/infra-argocd-github-app.pem"
+  < infra-argocd-github-app.pem
+
+ssh "$HOST" 'kubectl create ns infra --dry-run=client -o yaml | kubectl apply -f - \
+  && kubectl create secret generic gcpsm-credentials -n infra \
+  --from-file=secret-access-credentials=/dev/stdin' < gcpsm-credentials.json
 ```
 
-- `url` phải khớp từng ký tự với `repoURL` trong root app và ApplicationSet.
-- Thiếu label `argocd.argoproj.io/secret-type=repository` thì Argo CD không thấy credential.
-- Đây là secret tạo tay duy nhất của Argo CD; khi có External Secrets, ExternalSecret `cinema-ops-repo` nhận quản lý key từ GSM.
-
-Kiểm tra trên **UI của Argo CD** (mở qua SSH tunnel, xem mục UI bên dưới): Settings → Repositories → dòng `cinema-ops`, cột Connection Status báo `Successful`.
+- `url` phải khớp từng ký tự với `repoURL` trong root app và ApplicationSet. Thiếu label `argocd.argoproj.io/secret-type=repository` thì Argo CD không thấy credential.
+- Namespace `infra` về sau do Argo CD quản lý; tạo trước ở đây chỉ để chứa key.
+- Sau bootstrap, secret nào có ExternalSecret đi kèm thì đổi giá trị ở GSM, không tạo tay lại (xem README của từng thư mục `infra/<feat>/`).
 
 ## 3.4 Root app
 
@@ -239,9 +250,12 @@ Root không tự quản lý file của chính nó: sửa `bootstrap/root/<env>.y
 ## Verify
 
 ```bash
-kubectl get app,applicationset -n argocd     # argocd Synced/Healthy; appset infra, apps
-kubectl get ns cinema infra                  # tạo bởi infra/argocd/base/namespaces.yaml
+kubectl get app,applicationset -n argocd     # mọi app Synced/Healthy; appset infra, apps
 ```
+
+Từng thành phần có mục Verify riêng trong `infra/<feat>/README.md`.
+
+Credential đọc repo: trên **UI của Argo CD** (mục UI bên dưới), Settings → Repositories → dòng `cinema-ops` báo `Successful`.
 
 ## UI
 
