@@ -1,0 +1,4 @@
+# Production changes need an owner review; staging merges without one.
+/apps/*/envs/production/         @cine-org/ops
+/infra/*/envs/production/        @cine-org/ops
+/bootstrap/root/production.yaml  @cine-org/ops
