@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cinema
+resources:
+  - ../../base
+  - ingress.yaml
+
+# The cinema release bot edits newTag (cinema: .github/actions/ops-pr).
+images:
+  - name: ghcr.io/cine-org/cinema/web-admin
+    newTag: sha-b958873
+
+# The hash suffix restarts the app when a value changes.
+configMapGenerator:
+  - name: web-admin-config
+    literals:
+      # Read at runtime and served to the browser by /runtime-config.
+      - API_ORIGIN=https://api.staging.cine.io.vn
