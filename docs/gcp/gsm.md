@@ -27,10 +27,19 @@ Security → Secret Manager → **Create secret**: Name = tên secret, Secret va
 
 File local giữ đúng tên secret để khi dựng lại chỉ việc upload lại.
 
+Password tự sinh là chuỗi hex, không có dấu xuống dòng ở cuối (dấu xuống dòng sẽ thành một phần của password):
+
+```bash
+openssl rand -hex 24 | tr -d '\n' > <tên>
+```
+
 | Tên                       | Giá trị                                                                  | Dùng cho                        |
 | ------------------------- | ------------------------------------------------------------------------ | ------------------------------- |
 | `infra-argocd-github-app` | file `.pem` của GitHub App `argocd-cinema-ops-reader`, key riêng của env | Argo CD đọc repo, commit status |
 | `infra-argocd-webhook`    | chuỗi ngẫu nhiên, trùng Secret của webhook GitHub trên `cinema-ops`      | Argo CD xác thực webhook        |
+| `infra-postgres`          | password role `cinema` (owner)                                           | Postgres, chạy migration        |
+| `infra-postgres-rw`       | password role `cinema_rw`                                                | Postgres, api lúc chạy          |
+| `infra-postgres-ro`       | password role `cinema_ro`                                                | Postgres, chỉ đọc               |
 | `cinema-ghcr-pull`        | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io`  |
 
 Thêm secret mới thì thêm dòng vào bảng này cùng PR dùng nó. Prefix: `infra-` cho hạ tầng, `cinema-` cho app.
