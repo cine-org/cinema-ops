@@ -2,9 +2,10 @@
 
 Mọi việc làm tay khi dựng một env mới trên VPS trống. Xong mục 3 (Argo CD + root app), mọi thứ khác vào cluster bằng `git push`.
 
-| Env     | SSH alias        | Domain                 |
-| ------- | ---------------- | ---------------------- |
-| staging | `cinema-staging` | `*.staging.cine.io.vn` |
+| Env        | GCP project         | SSH alias           | Domain                       |
+| ---------- | ------------------- | ------------------- | ---------------------------- |
+| staging    | `cinema-stag`       | `cinema-staging`    | `*.staging.cine.io.vn`       |
+| production | `cinema-production` | `cinema-production` | `cine.io.vn`, `*.cine.io.vn` |
 
 ## Chuẩn bị
 
@@ -15,9 +16,9 @@ GCP, mỗi env một project:
 
 Coi repo là private: Argo CD đọc repo bằng GitHub App `argocd-cinema-ops-reader` (App ID `4630807`, Installation ID `154539301`, quyền Contents R · Commit statuses RW).
 
-Mỗi env một private key: GitHub → cine-org → Settings → GitHub Apps → `argocd-cinema-ops-reader` → Private keys → Generate. Lưu thành file `infra-argocd-github-app.pem`.
+Mỗi env một private key: GitHub → cine-org → Settings → GitHub Apps → `argocd-cinema-ops-reader` → Private keys → Generate. File key tải về đặt tên `infra-argocd-github-app.pem`.
 
-File secret giữ ở máy local, không commit và không để trên VPS. File đưa lên GSM đặt tên theo tên secret. Các lệnh bên dưới chỉ ghi tên file.
+File key và giá trị secret chỉ dùng để đưa lên GSM hoặc truyền qua stdin: không commit, không chép lên VPS. File đặt tên theo tên secret; các lệnh bên dưới chỉ ghi tên file.
 
 Mỗi phiên terminal ở máy local, đứng ở thư mục repo, khai env một lần; các lệnh bên dưới dùng lại:
 
@@ -225,7 +226,9 @@ ssh "$HOST" 'kubectl create secret generic cinema-ops-repo -n argocd \
   --from-file=githubAppPrivateKey=/dev/stdin \
   && kubectl label secret cinema-ops-repo -n argocd argocd.argoproj.io/secret-type=repository' \
   < infra-argocd-github-app.pem
+```
 
+```bash
 ssh "$HOST" 'kubectl create ns infra --dry-run=client -o yaml | kubectl apply -f - \
   && kubectl create secret generic gcpsm-credentials -n infra \
   --from-file=secret-access-credentials=/dev/stdin' < gcpsm-credentials.json
