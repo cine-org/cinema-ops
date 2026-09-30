@@ -12,6 +12,8 @@ spec:
       labels:
         app.kubernetes.io/name: api
     spec:
+      # Service "api" would inject API_PORT=tcp://..., clashing with the api's own API_PORT.
+      enableServiceLinks: false
       imagePullSecrets:
         - name: ghcr-pull
       securityContext:
