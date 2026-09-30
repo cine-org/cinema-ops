@@ -1,0 +1,2 @@
+# Traefik ships with k3s: no chart.
+namespace: kube-system

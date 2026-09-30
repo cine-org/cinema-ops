@@ -1,0 +1,7 @@
+# Read by infra/argocd/base/infra.yaml.
+namespace: cert-manager
+chart:
+  repo: https://charts.jetstack.io
+  name: cert-manager
+  version: v1.21.2
+  release: cert-manager

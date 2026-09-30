@@ -27,10 +27,11 @@ Security → Secret Manager → **Create secret**: Name = tên secret, Secret va
 
 File local giữ đúng tên secret để khi dựng lại chỉ việc upload lại.
 
-| Tên                       | Giá trị                                                                  | Dùng cho                       |
-| ------------------------- | ------------------------------------------------------------------------ | ------------------------------ |
-| `infra-argocd-github-app` | file `.pem` của GitHub App `argocd-cinema-ops-reader`, key riêng của env | Argo CD đọc repo               |
-| `cinema-ghcr-pull`        | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io` |
+| Tên                       | Giá trị                                                                  | Dùng cho                        |
+| ------------------------- | ------------------------------------------------------------------------ | ------------------------------- |
+| `infra-argocd-github-app` | file `.pem` của GitHub App `argocd-cinema-ops-reader`, key riêng của env | Argo CD đọc repo, commit status |
+| `infra-argocd-webhook`    | chuỗi ngẫu nhiên, trùng Secret của webhook GitHub trên `cinema-ops`      | Argo CD xác thực webhook        |
+| `cinema-ghcr-pull`        | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io`  |
 
 Thêm secret mới thì thêm dòng vào bảng này cùng PR dùng nó. Prefix: `infra-` cho hạ tầng, `cinema-` cho app.
 

@@ -259,7 +259,7 @@ Credential đọc repo: trên **UI của Argo CD** (mục UI bên dưới), Sett
 
 ## UI
 
-Chưa có Ingress; vào qua SSH tunnel:
+UI không mở ra Internet (Ingress chỉ mở path webhook); vào qua SSH tunnel:
 
 ```bash
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
