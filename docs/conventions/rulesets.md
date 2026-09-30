@@ -1,6 +1,6 @@
 # Rulesets
 
-Cấu hình GitHub bảo vệ `main` của repo này. Nguồn thật là **Settings → Rules → Rulesets** trên GitHub. Sửa xong thì export JSON vào `.github/rulesets/<tên>.json` qua PR; dựng lại repo thì import các file này.
+Cấu hình GitHub bảo vệ `main` của repo này. Nguồn thật là **Settings → Rules → Rulesets** trên GitHub. Trang này mô tả từng ruleset: dựng lại repo thì cấu hình theo các bảng dưới, đổi ruleset thì sửa trang này qua PR.
 
 Chỉ có `main`. Người sửa qua nhánh ngắn + PR; bot mở PR deploy (staging tự merge, production người merge). Quy ước PR/commit: [git-workflow.md](git-workflow.md).
 
@@ -13,7 +13,7 @@ Chỉ có `main`. Người sửa qua nhánh ngắn + PR; bot mở PR deploy (sta
 | Allow auto-merge                   | ✅ (bot dùng cho staging) |
 | Automatically delete head branches | ✅                        |
 
-## `main` (`main.json`)
+## `main`
 
 Chỉ bật các rule dưới đây, còn lại tắt.
 
