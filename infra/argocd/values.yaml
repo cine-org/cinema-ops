@@ -6,14 +6,70 @@ redis-ha:
 dex:
   enabled: false
 
-# Plain HTTP inside the cluster: the UI is reached through a port-forward, and TLS will end at Traefik.
+# Plain HTTP inside the cluster: TLS ends at Traefik, the UI is reached through a port-forward.
 configs:
   params:
     server.insecure: true
 
-# Needs the GitHub App key from GSM; enabled together with External Secrets.
+# Commit status "argocd/<env>/<app>" on the synced cinema-ops commit; env comes from envs/<env>/values.yaml.
 notifications:
-  enabled: false
+  enabled: true
+  resources:
+    requests:
+      cpu: 20m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+  secret:
+    # Created by ESO (base/external-secrets.yaml).
+    create: false
+  notifiers:
+    service.github: |
+      appID: 4630807
+      installationID: 154539301
+      privateKey: $github-privateKey
+  subscriptions:
+    - recipients: [github]
+      selector: commit-status=true
+      triggers:
+        [on-sync-running, on-deployed, on-sync-failed, on-health-degraded]
+  triggers:
+    trigger.on-sync-running: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Running']
+        send: [status-pending]
+    trigger.on-deployed: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+        oncePer: app.status.operationState.syncResult.revision
+        send: [status-success]
+    trigger.on-sync-failed: |
+      - when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+        send: [status-failure]
+    trigger.on-health-degraded: |
+      - when: app.status.health.status == 'Degraded'
+        send: [status-failure]
+  # operation.sync.revision exists from sync start; syncResult only at the end.
+  templates:
+    template.status-pending: |
+      message: "{{.app.metadata.name}} is syncing"
+      github:
+        revisionPath: "{{.app.status.operationState.operation.sync.revision}}"
+        status:
+          state: pending
+          label: "argocd/{{.context.env}}/{{.app.metadata.name}}"
+    template.status-success: |
+      message: "{{.app.metadata.name}} is synced and healthy"
+      github:
+        revisionPath: "{{.app.status.operationState.operation.sync.revision}}"
+        status:
+          state: success
+          label: "argocd/{{.context.env}}/{{.app.metadata.name}}"
+    template.status-failure: |
+      message: "{{.app.metadata.name}} failed: sync {{.app.status.operationState.phase}}, health {{.app.status.health.status}}"
+      github:
+        revisionPath: "{{.app.status.operationState.operation.sync.revision}}"
+        status:
+          state: failure
+          label: "argocd/{{.context.env}}/{{.app.metadata.name}}"
 
 controller:
   replicas: 1

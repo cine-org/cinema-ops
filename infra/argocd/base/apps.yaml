@@ -18,6 +18,9 @@ spec:
   template:
     metadata:
       name: "{{ index .path.segments 1 }}"
+      # Subscribes to commit status notifications (values.yaml).
+      labels:
+        commit-status: "true"
     spec:
       project: default
 
