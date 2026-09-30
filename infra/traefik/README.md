@@ -23,4 +23,4 @@ kubectl get pod -n kube-system -l app.kubernetes.io/name=traefik \
 curl -sI http://<host> | head -3     # 301 hoặc 308, location https://
 ```
 
-Phải thấy `--entryPoints.web.http.redirections.entryPoint.to=websecure`.
+Phải thấy `--entryPoints.web.http.redirections.entryPoint.to=:443` (chart đổi `websecure` thành cổng của nó).
