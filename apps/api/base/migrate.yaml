@@ -37,6 +37,8 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      # Service "api" would inject API_PORT=tcp://..., clashing with the api's own API_PORT.
+      enableServiceLinks: false
       imagePullSecrets:
         - name: ghcr-pull
       securityContext:
