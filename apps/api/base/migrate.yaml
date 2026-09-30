@@ -41,6 +41,8 @@ spec:
         - name: ghcr-pull
       securityContext:
         runAsNonRoot: true
+        # The image sets USER node by name; kubelet needs the numeric id to verify non-root.
+        runAsUser: 1000
       containers:
         - name: migrate
           # Same image and tag as the Deployment (kustomize images).
