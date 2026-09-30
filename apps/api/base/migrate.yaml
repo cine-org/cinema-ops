@@ -1,0 +1,59 @@
+# Owner connection string, only for the migration Job. Created as a hook so it exists before the Job runs.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: api-migrate-db
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gcp-secret-manager
+    kind: ClusterSecretStore
+  target:
+    name: api-migrate-db
+    template:
+      data:
+        DATABASE_URL: "postgresql://cinema:{{ .owner }}@postgres-rw.infra.svc:5432/cinema"
+  data:
+    - secretKey: owner
+      remoteRef:
+        key: infra-postgres
+---
+# Applies pending Prisma migrations before every sync; a failure stops the rollout.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: api-migrate
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-pull
+      securityContext:
+        runAsNonRoot: true
+      containers:
+        - name: migrate
+          # Same image and tag as the Deployment (kustomize images).
+          image: ghcr.io/cine-org/cinema/api
+          command: ["node_modules/.bin/prisma", "migrate", "deploy"]
+          envFrom:
+            - secretRef:
+                name: api-migrate-db
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 256Mi
