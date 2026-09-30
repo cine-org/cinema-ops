@@ -3,6 +3,9 @@ kind: Cluster
 metadata:
   name: postgres
   namespace: infra
+  annotations:
+    # After the operator chart (wave 0) and the password secrets (wave 1).
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   instances: 1
 

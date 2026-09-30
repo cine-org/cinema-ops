@@ -1,6 +1,6 @@
 # web-user
 
-Trang người dùng (Next.js, repo `cinema`: `apps/web-user`), chạy ở ns `cinema`, mở ra ngoài tại `https://staging.cine.io.vn` (staging).
+Trang người dùng (Next.js, repo `cinema`: `apps/web-user`), chạy ở ns `cinema`, mở ra ngoài tại `https://staging.cine.io.vn` (staging) và `https://cine.io.vn` (production).
 
 ```text
 Ingress staging.cine.io.vn ─▶ Service web-user :80 ─▶ pod web-user :3000
