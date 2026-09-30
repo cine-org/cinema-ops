@@ -1,0 +1,25 @@
+# Only the webhook path is public; the UI stays behind the SSH tunnel.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-webhook
+  namespace: argocd
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - argocd.cine.io.vn
+      secretName: argocd-cine-io-vn-tls
+  rules:
+    - host: argocd.cine.io.vn
+      http:
+        paths:
+          - path: /api/webhook
+            pathType: Exact
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  name: http

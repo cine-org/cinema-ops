@@ -1,0 +1,41 @@
+# Applied by hand; re-apply after editing.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 10.4.0
+      helm:
+        releaseName: argocd
+        ignoreMissingValueFiles: true
+        valueFiles:
+          - $values/infra/argocd/values.yaml
+          - $values/infra/argocd/envs/production/values.yaml
+    - repoURL: https://github.com/cine-org/cinema-ops.git
+      targetRevision: main
+      path: infra/argocd/envs/production
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ServerSideApply=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
