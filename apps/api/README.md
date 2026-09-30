@@ -46,7 +46,7 @@ Các biến api đọc: `apps/api/src/config/env.ts` bên repo `cinema`. Biến 
 
 - Password Postgres là chuỗi hex nên ghép thẳng vào URL được; password có ký tự đặc biệt thì phải mã hoá URL.
 - `DATABASE_URL_RO` trỏ `postgres-r` vì cluster còn 1 instance; `postgres-ro` chỉ đi tới replica ([infra/postgres](../../infra/postgres/README.md)).
-- `/health` nằm ngoài prefix `/api`; các route khác ở `/api/v1/...`. Swagger bật ở staging: `/api/docs`.
+- `/health` nằm ngoài prefix `/api`; các route khác ở `/api/v1/...`. Swagger chỉ bật ở staging: `/api/docs`.
 
 ## Verify
 

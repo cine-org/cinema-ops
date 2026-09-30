@@ -3,7 +3,3 @@ kind: Kustomization
 resources:
   - external-secrets.yaml
   - cluster.yaml
-
-# Operator CRs wait for the chart in wave 0.
-commonAnnotations:
-  argocd.argoproj.io/sync-wave: "1"

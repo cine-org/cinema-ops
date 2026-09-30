@@ -1,6 +1,6 @@
 # web-admin
 
-Trang quản trị (Next.js, repo `cinema`: `apps/web-admin`), chạy ở ns `cinema`, mở ra ngoài tại `https://admin.staging.cine.io.vn` (staging).
+Trang quản trị (Next.js, repo `cinema`: `apps/web-admin`), chạy ở ns `cinema`, mở ra ngoài tại `https://admin.staging.cine.io.vn` (staging) và `https://admin.cine.io.vn` (production).
 
 ```text
 Ingress admin.staging.cine.io.vn ─▶ Service web-admin :80 ─▶ pod web-admin :3000
