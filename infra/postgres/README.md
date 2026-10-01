@@ -140,6 +140,31 @@ YAML
 - Kiểm dữ liệu: `kubectl exec -n infra postgres-restore-1 -c postgres -- psql -d cinema -c '\dt'`.
 - Xong thì xoá: `kubectl delete cluster postgres-restore -n infra` (xoá cả PVC của nó).
 - Cluster tạo tay như trên nằm ngoài Git: Argo CD không quản, cũng không xoá.
+- `targetTime` có múi giờ; Postgres ở đây chạy UTC, lấy mốc bằng `select now()` cho khỏi lệch.
+- Database nhỏ mất khoảng 6 phút từ lúc apply tới `Cluster in healthy state` (kéo base backup + phát lại WAL).
+
+### Diễn tập
+
+Đã chạy trên staging ngày 2026-10-01 và khớp. Lặp lại định kỳ (ví dụ mỗi quý) để chắc backup còn dùng được:
+
+```text
+insert 'before' → lấy mốc T → insert 'after' + pg_switch_wal() → restore về T → chỉ còn 'before'
+```
+
+```bash
+PSQL="kubectl exec -n infra postgres-1 -c postgres -- psql -d cinema -Atc"
+$PSQL "create table restore_drill(note text, at timestamptz default now()); insert into restore_drill(note) values ('before')"
+$PSQL 'select now()'                                   # mốc T, chờ ~1 phút rồi chạy tiếp
+$PSQL "insert into restore_drill(note) values ('after'); select pg_switch_wal()"
+```
+
+`pg_switch_wal()` đóng file WAL đang ghi để plugin đẩy lên bucket ngay. Có file WAL mới (`gcloud storage ls -l gs://cinema-<env>-pg-backup/postgres/wals/…`) thì dựng `postgres-restore` như trên với `targetTime` = T, rồi:
+
+```bash
+kubectl exec -n infra postgres-restore-1 -c postgres -- psql -d cinema -Atc 'select note from restore_drill'   # chỉ có before
+kubectl delete cluster postgres-restore -n infra
+$PSQL 'drop table restore_drill'
+```
 
 Thay hẳn cluster gốc bằng bản restore (mất database, dựng lại env) chưa thử: viết thành runbook sau lần diễn tập đầu tiên.
 
