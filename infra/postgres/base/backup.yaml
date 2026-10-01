@@ -1,0 +1,65 @@
+# Service account key for the backup bucket (docs/gcp/gcs.md).
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-backup
+  namespace: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    # The CRD arrives later with the external-secrets app.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: gcp-secret-manager
+  target:
+    name: postgres-backup
+  data:
+    - secretKey: gcs.json
+      remoteRef:
+        key: infra-postgres-backup
+---
+# Where WAL and base backups go. Each env sets its bucket in envs/<env>.
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: gcs
+  namespace: infra
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    # The CRD arrives later with the barman-cloud app.
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  # Recovery window: any point in time within the last 14 days can be restored.
+  retentionPolicy: 14d
+  configuration:
+    destinationPath: gs://ENV-BUCKET
+    googleCredentials:
+      applicationCredentials:
+        name: postgres-backup
+        key: gcs.json
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-nightly
+  namespace: infra
+  annotations:
+    # After the Cluster (wave 2).
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  # Six fields, seconds first, in UTC: 02:00 Asia/Saigon.
+  schedule: "0 0 19 * * *"
+  # Take the first base backup right away instead of waiting for the night.
+  immediate: true
+  backupOwnerReference: self
+  cluster:
+    name: postgres
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io

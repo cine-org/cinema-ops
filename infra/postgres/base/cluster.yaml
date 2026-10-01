@@ -39,6 +39,15 @@ spec:
         inRoles:
           - pg_read_all_data
 
+  # Continuous WAL archiving to the ObjectStore in backup.yaml.
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      # Default, but the CNPG webhook fills it in; declared to stay in sync.
+      enabled: true
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: gcs
+
   storage:
     size: 5Gi
 
