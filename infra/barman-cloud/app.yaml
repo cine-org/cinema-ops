@@ -1,0 +1,8 @@
+# Read by infra/argocd/base/infra.yaml.
+# The plugin must run in the namespace of the CloudNativePG operator.
+namespace: cnpg-system
+chart:
+  repo: https://cloudnative-pg.github.io/charts
+  name: plugin-barman-cloud
+  version: 0.8.1
+  release: plugin-barman-cloud
