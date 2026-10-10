@@ -4,12 +4,10 @@ namespace: cinema
 resources:
   - ../../base
   - ingress.yaml
-
 # The cinema release bot edits newTag (cinema: .github/actions/ops-pr).
 images:
   - name: ghcr.io/cine-org/cinema/web-user
-    newTag: sha-b958873
-
+    newTag: sha-b074714
 # The hash suffix restarts the app when a value changes.
 configMapGenerator:
   - name: web-user-config
