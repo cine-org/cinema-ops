@@ -7,7 +7,7 @@ resources:
 # The cinema release bot edits newTag (cinema: .github/actions/ops-pr).
 images:
   - name: ghcr.io/cine-org/cinema/web-admin
-    newTag: sha-b074714
+    newTag: sha-3d65f9c
 # The hash suffix restarts the app when a value changes.
 configMapGenerator:
   - name: web-admin-config
