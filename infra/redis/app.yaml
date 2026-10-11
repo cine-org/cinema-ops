@@ -1,0 +1,7 @@
+# Read by infra/argocd/base/infra.yaml.
+namespace: redis-operator
+chart:
+  repo: https://ot-container-kit.github.io/helm-charts
+  name: redis-operator
+  version: 0.26.1
+  release: redis-operator

@@ -14,6 +14,7 @@ Mỗi env dùng GSM của project GCP riêng. Tên secret giống nhau ở mọi
 | `infra-postgres-rw`       | password role `cinema_rw`                                                | Postgres, api lúc chạy          |
 | `infra-postgres-ro`       | password role `cinema_ro`                                                | Postgres, chỉ đọc               |
 | `infra-postgres-backup`   | key JSON của service account `postgres-backup` ([gcs.md](gcs.md))        | Postgres ghi backup lên GCS     |
+| `infra-redis`             | password Redis (hiện chỉ staging)                                        | Redis                           |
 | `cinema-ghcr-pull`        | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io`  |
 
 Thêm secret mới thì thêm dòng vào bảng này cùng PR dùng nó. Prefix: `infra-` cho hạ tầng, `cinema-` cho app.
