@@ -52,6 +52,7 @@ flowchart LR
 | Secrets       | External Secrets Operator + Google Secret Manager                       |
 | Ingress, TLS  | Traefik (bundled with k3s), cert-manager + Let's Encrypt                |
 | Database      | CloudNativePG operator, Postgres 18                                     |
+| Cache         | Redis 8 through the OT-Container-Kit operator, in memory only           |
 | Registry      | GitHub Container Registry (private)                                     |
 | CI/CD         | GitHub Actions; GitHub Apps for the release bot and for Argo CD         |
 | Validation    | `kustomize build` + `kubeconform` (with CRD schemas) on every PR        |
