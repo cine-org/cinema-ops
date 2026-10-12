@@ -6,14 +6,15 @@ Backend NestJS của repo `cinema` (`apps/api`), chạy ở ns `cinema`, mở ra
 Ingress api.<domain> ─▶ Service api :80 ─▶ pod api :3000 ─▶ postgres-rw / postgres-r (ns infra)
 ```
 
-| File                            | Nội dung                                                                       |
-| ------------------------------- | ------------------------------------------------------------------------------ |
-| `base/deployment.yaml`          | Pod api, probe `/health`, env từ ConfigMap `api-config` và Secret `api-db`     |
-| `base/service.yaml`             | Service `api`, cổng 80 trỏ vào cổng `http` (3000) của pod                      |
-| `base/external-secrets.yaml`    | Secret `api-db`: `DATABASE_URL` (`cinema_rw`), `DATABASE_URL_RO` (`cinema_ro`) |
-| `base/migrate.yaml`             | Job chạy migration bằng role owner `cinema`, trước mỗi lần sync                |
-| `envs/<env>/kustomization.yaml` | Tag image, ConfigMap `api-config` của env                                      |
-| `envs/<env>/ingress.yaml`       | Host và chứng chỉ TLS của env                                                  |
+| File                                      | Nội dung                                                                       |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| `base/deployment.yaml`                    | Pod api, probe `/health`, env từ ConfigMap `api-config` và Secret `api-db`     |
+| `base/service.yaml`                       | Service `api`, cổng 80 trỏ vào cổng `http` (3000) của pod                      |
+| `base/external-secrets.yaml`              | Secret `api-db`: `DATABASE_URL` (`cinema_rw`), `DATABASE_URL_RO` (`cinema_ro`) |
+| `base/migrate.yaml`                       | Job chạy migration bằng role owner `cinema`, trước mỗi lần sync                |
+| `envs/<env>/kustomization.yaml`           | Tag image, ConfigMap `api-config` của env                                      |
+| `envs/staging/external-secret-redis.yaml` | Secret `api-redis`: `REDIS_URL` từ GSM `infra-redis` (chưa có ở production)    |
+| `envs/<env>/ingress.yaml`                 | Host và chứng chỉ TLS của env                                                  |
 
 ## Tag image
 
@@ -46,6 +47,7 @@ Các biến api đọc: `apps/api/src/config/env.ts` bên repo `cinema`. Biến 
 
 - Password Postgres là chuỗi hex nên ghép thẳng vào URL được; password có ký tự đặc biệt thì phải mã hoá URL.
 - `DATABASE_URL_RO` trỏ `postgres-r` vì cluster còn 1 instance; `postgres-ro` chỉ đi tới replica ([infra/postgres](../../infra/postgres/README.md)).
+- `TRUST_PROXY=1` (staging): chỉ Traefik đứng trước api. Thêm một lớp proxy (load balancer, Cloudflare bật proxy) thì tăng số hop; sai số hop thì rate limit theo IP gộp mọi người làm một hoặc để client giả IP.
 - `/health` nằm ngoài prefix `/api`; các route khác ở `/api/v1/...`. Swagger chỉ bật ở staging: `/api/docs`.
 
 ## Verify
