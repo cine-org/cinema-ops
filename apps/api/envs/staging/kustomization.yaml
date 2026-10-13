@@ -25,7 +25,7 @@ patches:
 # The cinema release bot edits newTag (cinema: .github/actions/ops-pr).
 images:
   - name: ghcr.io/cine-org/cinema/api
-    newTag: sha-13376ee
+    newTag: sha-3c3e424
 # The hash suffix restarts the api when a value changes.
 configMapGenerator:
   - name: api-config
