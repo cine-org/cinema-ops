@@ -4,6 +4,24 @@ namespace: cinema
 resources:
   - ../../base
   - ingress.yaml
+  - external-secret-redis.yaml
+  - external-secret-auth.yaml
+# Appends to envFrom: a strategic merge would replace the whole list.
+patches:
+  - target:
+      kind: Deployment
+      name: api
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: api-redis
+      - op: add
+        path: /spec/template/spec/containers/0/envFrom/-
+        value:
+          secretRef:
+            name: api-auth
 # The cinema release bot edits newTag (cinema: .github/actions/ops-pr).
 images:
   - name: ghcr.io/cine-org/cinema/api
@@ -16,3 +34,11 @@ configMapGenerator:
       - CORS_ORIGINS=https://staging.cine.io.vn,https://admin.staging.cine.io.vn
       - ENABLE_SWAGGER=true
       - LOG_LEVEL=log
+      # Traefik is the only proxy in front of the api.
+      - TRUST_PROXY=1
+      # Resend; the sender domain must be verified there. SMTP_PASSWORD comes from api-auth.
+      - SMTP_HOST=smtp.resend.com
+      - SMTP_PORT=465
+      - SMTP_SECURE=true
+      - SMTP_USER=resend
+      - SMTP_FROM=Cinema <no-reply@ticketbox.io.vn>
