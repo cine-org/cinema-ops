@@ -6,16 +6,19 @@ Mỗi env dùng GSM của project GCP riêng. Tên secret giống nhau ở mọi
 
 ## Secret mỗi env cần
 
-| Tên                       | Giá trị                                                                  | Dùng cho                        |
-| ------------------------- | ------------------------------------------------------------------------ | ------------------------------- |
-| `infra-argocd-github-app` | file `.pem` của GitHub App `argocd-cinema-ops-reader`, key riêng của env | Argo CD đọc repo, commit status |
-| `infra-argocd-webhook`    | chuỗi ngẫu nhiên, trùng Secret của webhook GitHub trên `cinema-ops`      | Argo CD xác thực webhook        |
-| `infra-postgres`          | password role `cinema` (owner)                                           | Postgres, chạy migration        |
-| `infra-postgres-rw`       | password role `cinema_rw`                                                | Postgres, api lúc chạy          |
-| `infra-postgres-ro`       | password role `cinema_ro`                                                | Postgres, chỉ đọc               |
-| `infra-postgres-backup`   | key JSON của service account `postgres-backup` ([gcs.md](gcs.md))        | Postgres ghi backup lên GCS     |
-| `infra-redis`             | password Redis (hiện chỉ staging)                                        | Redis                           |
-| `cinema-ghcr-pull`        | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io`  |
+| Tên                        | Giá trị                                                                  | Dùng cho                        |
+| -------------------------- | ------------------------------------------------------------------------ | ------------------------------- |
+| `infra-argocd-github-app`  | file `.pem` của GitHub App `argocd-cinema-ops-reader`, key riêng của env | Argo CD đọc repo, commit status |
+| `infra-argocd-webhook`     | chuỗi ngẫu nhiên, trùng Secret của webhook GitHub trên `cinema-ops`      | Argo CD xác thực webhook        |
+| `infra-postgres`           | password role `cinema` (owner)                                           | Postgres, chạy migration        |
+| `infra-postgres-rw`        | password role `cinema_rw`                                                | Postgres, api lúc chạy          |
+| `infra-postgres-ro`        | password role `cinema_ro`                                                | Postgres, chỉ đọc               |
+| `infra-postgres-backup`    | key JSON của service account `postgres-backup` ([gcs.md](gcs.md))        | Postgres ghi backup lên GCS     |
+| `infra-redis`              | password Redis (hiện chỉ staging)                                        | Redis, api (`REDIS_URL`)        |
+| `cinema-auth-otp-hmac-key` | base64 của 32 byte ngẫu nhiên (hiện chỉ staging)                         | api: băm mã OTP gửi qua email   |
+| `cinema-auth-jwt-secret`   | base64 của 32 byte ngẫu nhiên (hiện chỉ staging)                         | api: ký access token            |
+| `cinema-smtp-password`     | API key Resend (hiện chỉ staging)                                        | api: gửi email                  |
+| `cinema-ghcr-pull`         | `{"username":"<github-user>","token":"<PAT classic read:packages>"}`     | cluster kéo image từ `ghcr.io`  |
 
 Thêm secret mới thì thêm dòng vào bảng này cùng PR dùng nó. Prefix: `infra-` cho hạ tầng, `cinema-` cho app.
 
@@ -46,6 +49,12 @@ Password tự sinh là chuỗi hex, không có dấu xuống dòng ở cuối (d
 
 ```bash
 openssl rand -hex 24 | tr -d '\n' > <tên>
+```
+
+Khoá auth (`cinema-auth-*`) là base64, không phải hex: api kiểm tra base64 của ít nhất 32 byte.
+
+```bash
+openssl rand -base64 32 | tr -d '\n' > <tên>
 ```
 
 ## Đổi giá trị
